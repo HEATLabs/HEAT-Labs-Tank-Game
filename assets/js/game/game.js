@@ -159,9 +159,9 @@ class TankGame {
             velocityX: 0,
             velocityY: 0,
             targetRotation: 0,
-            rotationSpeed: 0.08,
-            acceleration: 0.2,
-            deceleration: 0.15,
+            rotationSpeed: 0.05,
+            acceleration: 5.0,
+            deceleration: 3.0,
             maxSpeed: 5,
             currentSpeed: 0
         };
@@ -1404,7 +1404,10 @@ class TankGame {
         const deltaTime = currentTime - this.lastTime;
         this.lastTime = currentTime;
 
-        this.update(deltaTime);
+        // Limit delta time to prevent large jumps when inactive
+        const clampedDeltaTime = Math.min(deltaTime, 100);
+
+        this.update(clampedDeltaTime);
         this.render();
 
         if (this.gameRunning && !this.gamePaused && !this.gameOver) {
@@ -1413,6 +1416,9 @@ class TankGame {
     }
 
     update(deltaTime) {
+        // Convert deltaTime to seconds
+        const deltaTimeInSeconds = deltaTime / 1000;
+
         // Update wave system
         this.updateWaveSystem(deltaTime);
 
@@ -1423,19 +1429,19 @@ class TankGame {
         this.updateIndicatorAnimation(deltaTime);
 
         // Update player movement
-        this.updatePlayer(deltaTime);
+        this.updatePlayer(deltaTimeInSeconds);
 
         // Update camera to follow player
         this.updateCamera();
 
         // Update enemies
-        this.updateEnemies(deltaTime);
+        this.updateEnemies(deltaTimeInSeconds);
 
         // Update bullets
-        this.updateBullets(deltaTime);
+        this.updateBullets(deltaTimeInSeconds);
 
         // Update enemy bullets
-        this.updateEnemyBullets(deltaTime);
+        this.updateEnemyBullets(deltaTimeInSeconds);
 
         // Update particles
         this.updateParticles(deltaTime);
@@ -1477,7 +1483,7 @@ class TankGame {
 
     // Update indicator animation
     updateIndicatorAnimation(deltaTime) {
-        this.indicatorPhase += this.enemyIndicators.pulseSpeed * deltaTime;
+        this.indicatorPhase += this.enemyIndicators.pulseSpeed * (deltaTime / 16.67);
         if (this.indicatorPhase > Math.PI * 2) {
             this.indicatorPhase -= Math.PI * 2;
         }
@@ -1602,8 +1608,6 @@ class TankGame {
     }
 
     updatePlayer(deltaTime) {
-        const deltaTimeNormalized = deltaTime / 16.67; // Normalize to 60fps, we gaming here
-
         // Get input direction
         let inputX = 0;
         let inputY = 0;
@@ -1620,7 +1624,7 @@ class TankGame {
 
         // Smoothly rotate towards target rotation
         const angleDiff = this.normalizeAngle(this.playerTank.targetRotation - this.playerTank.rotation);
-        this.playerTank.rotation += angleDiff * this.playerTank.rotationSpeed * deltaTimeNormalized;
+        this.playerTank.rotation += angleDiff * this.playerTank.rotationSpeed;
 
         // Calculate movement direction based on current rotation
         const moveX = Math.cos(this.playerTank.rotation);
@@ -1635,13 +1639,13 @@ class TankGame {
             // Accelerate
             this.playerTank.currentSpeed = Math.min(
                 targetSpeed,
-                this.playerTank.currentSpeed + this.playerTank.acceleration * deltaTimeNormalized
+                this.playerTank.currentSpeed + this.playerTank.acceleration * deltaTime
             );
         } else if (targetSpeed < this.playerTank.currentSpeed) {
             // Decelerate
             this.playerTank.currentSpeed = Math.max(
                 targetSpeed,
-                this.playerTank.currentSpeed - this.playerTank.deceleration * deltaTimeNormalized
+                this.playerTank.currentSpeed - this.playerTank.deceleration * deltaTime
             );
         }
 
@@ -1660,8 +1664,8 @@ class TankGame {
         }
 
         // Calculate new position
-        let newX = this.playerTank.x + this.playerTank.velocityX;
-        let newY = this.playerTank.y + this.playerTank.velocityY;
+        let newX = this.playerTank.x + this.playerTank.velocityX * deltaTime * 60;
+        let newY = this.playerTank.y + this.playerTank.velocityY * deltaTime * 60;
 
         // Check collision with rocks
         const playerRadius = this.playerTank.width / 2;
@@ -1707,7 +1711,7 @@ class TankGame {
         for (const pack of this.healthPacks) {
             if (!pack.collected) {
                 // Update pulsing animation
-                pack.pulsePhase += this.healthPackSettings.pulseSpeed * deltaTime / 16.67;
+                pack.pulsePhase += this.healthPackSettings.pulseSpeed * (deltaTime / 16.67);
                 if (pack.pulsePhase > Math.PI * 2) {
                     pack.pulsePhase -= Math.PI * 2;
                 }
@@ -1736,8 +1740,6 @@ class TankGame {
     }
 
     updateEnemies(deltaTime) {
-        const deltaTimeNormalized = deltaTime / 16.67; // Normalize to 60fps, ACTUAL GAMING
-
         // Calculate enemy movement toward player with obstacle avoidance
         for (let i = 0; i < this.enemies.length; i++) {
             const enemy = this.enemies[i];
@@ -1760,7 +1762,7 @@ class TankGame {
             if (distance > 0) {
                 const targetTurretAngle = Math.atan2(dy, dx);
                 const angleDiff = this.normalizeAngle(targetTurretAngle - enemy.turretRotation);
-                enemy.turretRotation += angleDiff * this.settings.enemyTurretTrackingSpeed * deltaTimeNormalized;
+                enemy.turretRotation += angleDiff * this.settings.enemyTurretTrackingSpeed;
             }
 
             // Check if enemy can shoot at player
@@ -1831,11 +1833,11 @@ class TankGame {
 
                 // Smoothly rotate toward target
                 const angleDiff = this.normalizeAngle(enemy.targetRotation - enemy.rotation);
-                enemy.rotation += angleDiff * enemy.rotationSpeed * deltaTimeNormalized;
+                enemy.rotation += angleDiff * enemy.rotationSpeed;
 
                 // Move in the direction enemy is facing
-                enemy.desiredX = enemy.x + Math.cos(enemy.rotation) * enemy.speed;
-                enemy.desiredY = enemy.y + Math.sin(enemy.rotation) * enemy.speed;
+                enemy.desiredX = enemy.x + Math.cos(enemy.rotation) * enemy.speed * deltaTime * 60;
+                enemy.desiredY = enemy.y + Math.sin(enemy.rotation) * enemy.speed * deltaTime * 60;
             }
         }
 
@@ -1871,7 +1873,7 @@ class TankGame {
 
             if (moveDistance > 0) {
                 // Limit movement to avoid overshooting
-                const maxMove = enemy.speed * 2;
+                const maxMove = enemy.speed * 2 * deltaTime * 60;
                 if (moveDistance > maxMove) {
                     enemy.desiredX = enemy.x + (moveX / moveDistance) * maxMove;
                     enemy.desiredY = enemy.y + (moveY / moveDistance) * maxMove;
@@ -2016,8 +2018,8 @@ class TankGame {
         for (let i = this.bullets.length - 1; i >= 0; i--) {
             const bullet = this.bullets[i];
 
-            bullet.x += Math.cos(bullet.rotation) * bullet.speed;
-            bullet.y += Math.sin(bullet.rotation) * bullet.speed;
+            bullet.x += Math.cos(bullet.rotation) * bullet.speed * deltaTime * 60;
+            bullet.y += Math.sin(bullet.rotation) * bullet.speed * deltaTime * 60;
 
             // Check collision with rocks
             let hitRock = false;
@@ -2049,8 +2051,8 @@ class TankGame {
         for (let i = this.enemyBullets.length - 1; i >= 0; i--) {
             const bullet = this.enemyBullets[i];
 
-            bullet.x += Math.cos(bullet.rotation) * bullet.speed;
-            bullet.y += Math.sin(bullet.rotation) * bullet.speed;
+            bullet.x += Math.cos(bullet.rotation) * bullet.speed * deltaTime * 60;
+            bullet.y += Math.sin(bullet.rotation) * bullet.speed * deltaTime * 60;
 
             // Check collision with rocks
             let hitRock = false;
@@ -2088,8 +2090,8 @@ class TankGame {
                 continue;
             }
 
-            particle.x += particle.vx;
-            particle.y += particle.vy;
+            particle.x += particle.vx * (deltaTime / 16.67);
+            particle.y += particle.vy * (deltaTime / 16.67);
             particle.alpha = particle.life / particle.maxLife;
         }
     }
