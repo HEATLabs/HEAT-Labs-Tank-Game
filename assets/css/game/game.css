@@ -269,59 +269,6 @@
 	color: rgba(255, 255, 255, 0.8);
 }
 
-.tank-game-instructions {
-	background-color: var(--card-bg);
-	border-radius: 0.75rem;
-	padding: 1.5rem;
-	border: 1px solid var(--border-color);
-	box-shadow: var(--shadow);
-}
-
-.instructions-grid {
-	display: grid;
-	grid-template-columns: repeat(4, 1fr);
-	gap: 1.5rem;
-	margin-top: 1rem;
-}
-
-.instruction-item {
-	display: flex;
-	align-items: center;
-	gap: 1rem;
-	padding: 1rem;
-	background-color: rgba(var(--accent-color-rgb), 0.05);
-	border-radius: 0.5rem;
-	border: 1px solid var(--border-color);
-}
-
-.instruction-icon {
-	width: 48px;
-	height: 48px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	background-color: var(--accent-color);
-	color: white;
-	border-radius: 50%;
-	font-size: 1.25rem;
-	flex-shrink: 0;
-}
-
-.instruction-text {
-	flex-grow: 1;
-}
-
-.instruction-text h4 {
-	font-weight: 600;
-	color: var(--text-primary);
-	margin-bottom: 0.25rem;
-}
-
-.instruction-text p {
-	font-size: 0.875rem;
-	color: var(--text-secondary);
-}
-
 .tank-debug-panel {
 	position: absolute;
 	bottom: 1rem;
