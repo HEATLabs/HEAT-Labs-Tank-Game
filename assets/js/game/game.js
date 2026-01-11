@@ -194,7 +194,7 @@ class TankGame {
             bulletSpeed: 10,
             enemyBulletSpeed: 7,
             particleLifetime: 1000,
-            debugMode: false,
+            debugMode: true,
             rapidFire: false,
             enemySpawnDistance: 400,
             enemyDespawnDistance: 800,
