@@ -346,11 +346,6 @@ body {
 	color: var(--text-secondary);
 }
 
-/* Sections */
-.section {
-	padding: 5rem 0;
-}
-
 .section-title {
 	text-align: center;
 	font-size: 2.5rem;
@@ -627,10 +622,6 @@ body {
 }
 
 @media (max-width: 768px) {
-	.section {
-		padding: 3rem 0;
-	}
-
 	.section-title {
 		font-size: 2rem;
 	}
