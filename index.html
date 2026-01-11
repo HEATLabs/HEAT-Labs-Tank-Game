@@ -26,10 +26,56 @@
             <div class="tank-game-container">
               <!-- Game Canvas -->
               <div class="tank-game-canvas-container">
+                <!-- Main Menu Overlay -->
+                <div id="mainMenuOverlay" class="main-menu-overlay">
+                  <h2>TANK DEFENSE</h2>
+                  <div class="subtitle">Survive endless waves of enemy tanks.</div>
+                  <!-- Main Menu Buttons -->
+                  <div class="main-menu-buttons">
+                    <button id="continueGameButton" class="tank-game-btn large">
+                      <i class="fas fa-play-circle"></i> Continue Game </button>
+                    <button id="newGameButton" class="tank-game-btn large">
+                      <i class="fas fa-play-circle"></i> New Game </button>
+                    <button id="settingsButton" class="tank-game-btn large">
+                      <i class="fas fa-cog"></i> Settings </button>
+                    <button id="exitButton" class="tank-game-btn secondary large">
+                      <i class="fas fa-sign-out-alt"></i> Exit </button>
+                  </div>
+                  <!-- Version/Copyright Info -->
+                  <div class="version-info">
+                    <span class="game-title">TANK DEFENSE</span>
+                    <span class="version">VERSION 1.0.0</span>
+                    <span class="copyright">&copy; 2026 HEAT Labs & SINEWAVE Development</span>
+                  </div>
+                  <!-- Social Buttons -->
+                  <div class="social-buttons-container">
+                    <a href="https://discord.gg/yourdiscord" class="social-button" target="_blank" rel="noopener noreferrer">
+                      <i class="fab fa-discord"></i>
+                    </a>
+                    <a href="https://www.instagram.com/heatlabs_official/" class="social-button" target="_blank" rel="noopener noreferrer">
+                      <i class="fab fa-instagram"></i>
+                    </a>
+                    <a href="https://www.youtube.com/@HEATLabs-Official" class="social-button" target="_blank" rel="noopener noreferrer">
+                      <i class="fab fa-youtube"></i>
+                    </a>
+                    <a href="https://x.com/HEAT_Labs" class="social-button" target="_blank" rel="noopener noreferrer">
+                      <i class="fab fa-twitter"></i>
+                    </a>
+                    <a href="https://www.tiktok.com/@heatlabs_official" class="social-button" target="_blank" rel="noopener noreferrer">
+                      <i class="fab fa-tiktok"></i>
+                    </a>
+                    <a href="https://www.twitch.tv/HEATLabs" class="social-button" target="_blank" rel="noopener noreferrer">
+                      <i class="fab fa-twitch"></i>
+                    </a>
+                    <a href="https://heatlabs.net" class="social-button" target="_blank" rel="noopener noreferrer">
+                      <i class="fas fa-globe"></i>
+                    </a>
+                  </div>
+                </div>
                 <!-- Start Overlay -->
-                <div id="startOverlay" class="game-overlay" style="display: flex;">
+                <div id="startOverlay" class="game-overlay" style="display: none;">
                   <h2>Tank Defense</h2>
-                  <p>Survive waves of enemy tanks. Defend your position and score as high as possible!</p>
+                  <p>Survive endless waves of enemy tanks.</p>
                   <button id="startGameFromOverlay" class="tank-game-btn" style="font-size: 1.25rem; padding: 1rem 2rem;">
                     <i class="fas fa-play"></i> Start Game </button>
                 </div>
@@ -49,9 +95,15 @@
                       <div class="overlay-stat-value" id="enemiesKilled">0</div>
                       <div class="overlay-stat-label">Enemies Killed</div>
                     </div>
+                    <div class="overlay-stat">
+                      <div class="overlay-stat-value" id="finalSurvivalTime">00:00</div>
+                      <div class="overlay-stat-label">Survival Time</div>
+                    </div>
                   </div>
                   <button id="restartFromOverlay" class="tank-game-btn" style="font-size: 1.25rem; padding: 1rem 2rem;">
                     <i class="fas fa-redo"></i> Play Again </button>
+                  <button id="backToMainMenu" class="tank-game-btn secondary" style="margin-top: 1rem;">
+                    <i class="fas fa-home"></i> Back to Main Menu </button>
                 </div>
                 <canvas id="tankGameCanvas"></canvas>
                 <div class="tank-debug-panel" id="debugPanel"></div>

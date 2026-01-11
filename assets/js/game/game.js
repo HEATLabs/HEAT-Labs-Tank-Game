@@ -233,7 +233,12 @@ class TankGame {
             restartOverlay: null,
             fullscreen: null,
             exitFullscreen: null,
-            fullscreenPause: null
+            fullscreenPause: null,
+            continueGameButton: null,
+            newGameButton: null,
+            settingsButton: null,
+            exitButton: null,
+            backToMainMenu: null
         };
 
         // Wave timer element
@@ -268,10 +273,10 @@ class TankGame {
             this.createFullscreenControls();
             this.updateButtonStates();
 
-            // Show start overlay by default
-            const startOverlay = document.getElementById('startOverlay');
-            if (startOverlay) {
-                startOverlay.style.display = 'flex';
+            // Show main menu by default
+            const mainMenuOverlay = document.getElementById('mainMenuOverlay');
+            if (mainMenuOverlay) {
+                mainMenuOverlay.style.display = 'flex';
             }
 
             // Apply fullscreen styles immediately
@@ -366,7 +371,7 @@ class TankGame {
         const pauseBtn = document.createElement('button');
         pauseBtn.className = 'tank-game-btn secondary';
         pauseBtn.id = 'fullscreenPause';
-        pauseBtn.innerHTML = '<i class="fas fa-pause"></i> Pause';
+        pauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
 
         buttonsContainer.appendChild(pauseBtn);
 
@@ -477,16 +482,14 @@ class TankGame {
     }
 
     updateButtonStates() {
-        // Get button elements (if not already cached)
-        if (!this.buttonElements.pause) {
-            this.buttonElements.pause = document.getElementById('pauseGame');
-        }
-        if (!this.buttonElements.startOverlay) {
-            this.buttonElements.startOverlay = document.getElementById('startGameFromOverlay');
-        }
-        if (!this.buttonElements.restartOverlay) {
-            this.buttonElements.restartOverlay = document.getElementById('restartFromOverlay');
-        }
+        // Cache button elements
+        this.buttonElements.continueGameButton = document.getElementById('continueGameButton');
+        this.buttonElements.newGameButton = document.getElementById('newGameButton');
+        this.buttonElements.settingsButton = document.getElementById('settingsButton');
+        this.buttonElements.exitButton = document.getElementById('exitButton');
+        this.buttonElements.backToMainMenu = document.getElementById('backToMainMenu');
+        this.buttonElements.startOverlay = document.getElementById('startGameFromOverlay');
+        this.buttonElements.restartOverlay = document.getElementById('restartFromOverlay');
 
         // Update fullscreen controls
         this.updateFullscreenControls();
@@ -498,9 +501,9 @@ class TankGame {
         const fullscreenPauseBtn = this.buttonElements.fullscreenPause;
         if (fullscreenPauseBtn) {
             if (this.gamePaused) {
-                fullscreenPauseBtn.innerHTML = '<i class="fas fa-play"></i> Resume';
+                fullscreenPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
             } else {
-                fullscreenPauseBtn.innerHTML = '<i class="fas fa-pause"></i> Pause';
+                fullscreenPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
             }
         }
     }
@@ -586,9 +589,51 @@ class TankGame {
 
     setupEventListeners() {
         // Get button elements
-        this.buttonElements.pause = document.getElementById('pauseGame');
-        this.buttonElements.startOverlay = document.getElementById('startGameFromOverlay');
-        this.buttonElements.restartOverlay = document.getElementById('restartFromOverlay');
+        this.updateButtonStates();
+
+        // Main menu buttons
+        if (this.buttonElements.continueGameButton) {
+            this.buttonElements.continueGameButton.addEventListener('click', () => {
+                this.showMessage("Feature Coming Soon");
+            });
+        }
+
+        if (this.buttonElements.newGameButton) {
+            this.buttonElements.newGameButton.addEventListener('click', () => {
+                this.startGame();
+            });
+        }
+
+        if (this.buttonElements.settingsButton) {
+            this.buttonElements.settingsButton.addEventListener('click', () => {
+                this.showMessage("Feature Coming Soon");
+            });
+        }
+
+        if (this.buttonElements.exitButton) {
+            this.buttonElements.exitButton.addEventListener('click', () => {
+                this.showMessage("Feature Coming Soon");
+            });
+        }
+
+        if (this.buttonElements.backToMainMenu) {
+            this.buttonElements.backToMainMenu.addEventListener('click', () => {
+                this.showMainMenu();
+            });
+        }
+
+        // Overlay buttons
+        if (this.buttonElements.startOverlay) {
+            this.buttonElements.startOverlay.addEventListener('click', () => {
+                this.startGame();
+            });
+        }
+
+        if (this.buttonElements.restartOverlay) {
+            this.buttonElements.restartOverlay.addEventListener('click', () => {
+                this.startGame();
+            });
+        }
 
         // Keyboard controls
         document.addEventListener('keydown', (e) => {
@@ -660,19 +705,6 @@ class TankGame {
             });
         }
 
-        // Overlay buttons
-        if (this.buttonElements.startOverlay) {
-            this.buttonElements.startOverlay.addEventListener('click', () => {
-                this.startGame();
-            });
-        }
-
-        if (this.buttonElements.restartOverlay) {
-            this.buttonElements.restartOverlay.addEventListener('click', () => {
-                this.startGame();
-            });
-        }
-
         // Pause with ESC key
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && this.gameRunning && !this.gameOver) {
@@ -683,6 +715,30 @@ class TankGame {
 
         // Initial button state
         this.updateButtonStates();
+    }
+
+    showMainMenu() {
+        // Hide game overlays
+        const gameOverOverlay = document.getElementById('gameOverOverlay');
+        const startOverlay = document.getElementById('startOverlay');
+        const mainMenuOverlay = document.getElementById('mainMenuOverlay');
+
+        if (gameOverOverlay) gameOverOverlay.style.display = 'none';
+        if (startOverlay) startOverlay.style.display = 'none';
+        if (mainMenuOverlay) mainMenuOverlay.style.display = 'flex';
+
+        // Stop game
+        this.gameRunning = false;
+        this.gamePaused = false;
+        this.gameOver = false;
+
+        // Hide fullscreen controls
+        this.hideFullscreenControls();
+
+        // Hide wave timer
+        if (this.waveTimerElement) {
+            this.waveTimerElement.style.display = 'none';
+        }
     }
 
     // Generate random rocks with irregular shapes
@@ -946,10 +1002,14 @@ class TankGame {
         // Initialize camera
         this.setupCamera();
 
-        // Hide start overlay
+        // Hide main menu and show game
+        const mainMenuOverlay = document.getElementById('mainMenuOverlay');
         const startOverlay = document.getElementById('startOverlay');
         const gameOverOverlay = document.getElementById('gameOverOverlay');
 
+        if (mainMenuOverlay) {
+            mainMenuOverlay.style.display = 'none';
+        }
         if (startOverlay) {
             startOverlay.style.display = 'none';
         }
@@ -3217,87 +3277,8 @@ class TankGame {
     }
 
     updateUI() {
-        // Update score
-        const scoreElement = document.getElementById('gameScore');
-        if (scoreElement) {
-            scoreElement.textContent = this.score;
-        }
-
-        // Update wave
-        const waveElement = document.getElementById('gameWave');
-        if (waveElement) {
-            waveElement.textContent = this.waveSystem.currentWave;
-        }
-
-        // Update health
-        const healthElement = document.getElementById('gameHealth');
-        if (healthElement) {
-            healthElement.textContent = this.playerHealth;
-        }
-
-        // Update enemies count
-        const enemiesElement = document.getElementById('gameEnemies');
-        if (enemiesElement) {
-            enemiesElement.textContent = this.enemies.length;
-        }
-
-        // Update total kills
-        const totalKillsElement = document.getElementById('totalKills');
-        if (totalKillsElement) {
-            totalKillsElement.textContent = this.totalKills;
-        }
-
-        // Update health packs collected
-        const healthPacksElement = document.getElementById('healthPacksCollected');
-        if (healthPacksElement) {
-            healthPacksElement.textContent = this.healthPacksCollected;
-        }
-
-        // Update survival time
-        const survivalTimeElement = document.getElementById('gameSurvivalTime');
-        if (!survivalTimeElement) {
-            // Create survival time element if it doesn't exist
-            this.createSurvivalTimeElement();
-        } else {
-            survivalTimeElement.textContent = this.formatTime(this.survivalTime);
-        }
-
         // Update fullscreen stats
         this.updateFullscreenStats();
-    }
-
-    createSurvivalTimeElement() {
-        // Find the stats container
-        const statsContainer = document.querySelector('.tank-game-stats');
-        if (!statsContainer) return;
-
-        // Check if survival time element already exists
-        if (document.getElementById('gameSurvivalTime')) return;
-
-        // Create survival time stat item
-        const statItem = document.createElement('div');
-        statItem.className = 'stat-item';
-
-        const statValue = document.createElement('div');
-        statValue.className = 'stat-value';
-        statValue.id = 'gameSurvivalTime';
-        statValue.textContent = this.formatTime(this.survivalTime);
-
-        const statLabel = document.createElement('div');
-        statLabel.className = 'stat-label';
-        statLabel.textContent = 'Survival Time';
-
-        statItem.appendChild(statValue);
-        statItem.appendChild(statLabel);
-
-        // Insert after health packs collected stat
-        const healthPacksElement = document.getElementById('healthPacksCollected');
-        if (healthPacksElement && healthPacksElement.parentNode) {
-            healthPacksElement.parentNode.parentNode.insertBefore(statItem, healthPacksElement.parentNode.nextSibling);
-        } else {
-            // If not found, append to the end
-            statsContainer.appendChild(statItem);
-        }
     }
 
     showGameOver() {
@@ -3311,29 +3292,9 @@ class TankGame {
         document.getElementById('finalWave').textContent = this.waveSystem.currentWave;
         document.getElementById('enemiesKilled').textContent = this.totalKills;
 
-        // Add survival time to game over screen
+        // Update survival time
         const survivalTimeElement = document.getElementById('finalSurvivalTime');
-        if (!survivalTimeElement) {
-            // Create the element if it doesn't exist
-            const overlayStats = document.querySelector('.overlay-stats');
-            if (overlayStats) {
-                const survivalStat = document.createElement('div');
-                survivalStat.className = 'overlay-stat';
-
-                const statValue = document.createElement('div');
-                statValue.className = 'overlay-stat-value';
-                statValue.id = 'finalSurvivalTime';
-                statValue.textContent = this.formatTime(this.survivalTime);
-
-                const statLabel = document.createElement('div');
-                statLabel.className = 'overlay-stat-label';
-                statLabel.textContent = 'Survival Time';
-
-                survivalStat.appendChild(statValue);
-                survivalStat.appendChild(statLabel);
-                overlayStats.appendChild(survivalStat);
-            }
-        } else {
+        if (survivalTimeElement) {
             survivalTimeElement.textContent = this.formatTime(this.survivalTime);
         }
 
@@ -3368,31 +3329,8 @@ class TankGame {
             z-index: 1000;
             font-weight: bold;
             pointer-events: none;
-            animation: fadeOut 2s forwards;
+            animation: notificationPulse 2s ease-in-out infinite;
         `;
-
-        // Add pulsing animation
-        message.style.animation = 'pulse 2s ease-in-out infinite';
-
-        // Add CSS for pulse animation
-        if (!document.getElementById('notificationPulseStyle')) {
-            const style = document.createElement('style');
-            style.id = 'notificationPulseStyle';
-            style.textContent = `
-                @keyframes pulse {
-                    0% { box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3),
-                                    0 0 0 1px rgba(255, 255, 255, 0.05),
-                                    0 0 20px rgba(76, 175, 80, 0.2); }
-                    50% { box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4),
-                                    0 0 0 1px rgba(255, 255, 255, 0.1),
-                                    0 0 30px rgba(76, 175, 80, 0.3); }
-                    100% { box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3),
-                                    0 0 0 1px rgba(255, 255, 255, 0.05),
-                                    0 0 20px rgba(76, 175, 80, 0.2); }
-                }
-            `;
-            document.head.appendChild(style);
-        }
 
         document.body.appendChild(message);
 
