@@ -13,7 +13,7 @@ class TankGame {
         this.enemySpawnTimer = 0;
         this.wave = 1;
         this.score = 0;
-        this.playerHealth = 100;
+        this.playerHealth = TankGameConfig.player.health;
         this.gameOver = false;
         this.keys = {};
         this.totalKills = 0;
@@ -27,22 +27,22 @@ class TankGame {
         // Auto-fire properties
         this.isMouseDown = false;
         this.autoFireTimer = 0;
-        this.autoFireInterval = 0;
+        this.autoFireInterval = TankGameConfig.autoFire.interval;
 
         // Wave system
         this.waveSystem = {
             currentWave: 1,
             waveEnemiesTarget: 0,
             waveEnemiesSpawned: 0,
-            waveTimeLimit: 60000,
+            waveTimeLimit: TankGameConfig.wave.timeLimit,
             waveTimer: 0,
             waveActive: false,
             waveStarting: false,
-            waveStartCountdown: 5,
+            waveStartCountdown: TankGameConfig.wave.startCountdown,
             waveStartTimer: 0,
-            waveEnemyCounts: [0, 1, 2, 4, 6, 8, 10],
-            baseEnemyIncrement: 2,
-            scalingFactor: 1
+            waveEnemyCounts: TankGameConfig.wave.waveEnemyCounts,
+            baseEnemyIncrement: TankGameConfig.wave.baseEnemyIncrement,
+            scalingFactor: TankGameConfig.wave.scalingFactor
         };
 
         // Camera system for centering player
@@ -57,101 +57,49 @@ class TankGame {
 
         // Game world dimensions
         this.world = {
-            width: 5000,
-            height: 5000
+            width: TankGameConfig.game.world.width,
+            height: TankGameConfig.game.world.height
         };
 
         // Map border configuration
-        this.borderSettings = {
-            thickness: 40,
-            mainColor: '#2C3E50',
-            edgeColor: '#34495E',
-            innerGlowColor: 'rgba(52, 152, 219, 0.3)',
-            warningThickness: 20,
-            warningColor: 'rgba(231, 76, 60, 0.4)',
-            warningDistance: 200,
-            cornerSize: 100,
-            cornerColor: '#2C3E50'
-        };
+        this.borderSettings = TankGameConfig.border;
 
         // Rocks/obstacles configuration
         this.rocks = [];
-        this.rockSettings = {
-            count: 60,
-            minSize: 30,
-            maxSize: 100,
-            minPoints: 5,
-            maxPoints: 12,
-            irregularity: 0.3,
-            spacing: 200,
-            color: '#6B7280',
-            colorVariation: 20,
-            edgeBuffer: 200,
-            playerBuffer: 300,
-            minPassageWidth: 100
-        };
+        this.rockSettings = TankGameConfig.rocks;
 
         // Health packs configuration
         this.healthPacks = [];
-        this.healthPackSettings = {
-            count: 20,
-            minSize: 50,
-            maxSize: 55,
-            healthAmount: 25,
-            respawnTime: 30000,
-            color: '#10B981',
-            glowColor: '#34D399',
-            spacing: 300,
-            minDistanceFromPlayer: 400,
-            pulseSpeed: 0.05,
-            rotationSpeed: 0.02
-        };
+        this.healthPackSettings = TankGameConfig.healthPacks;
 
         // Track health pack respawn timers
         this.healthPackRespawnTimers = [];
 
         // Enemy indicators configuration
-        this.enemyIndicators = {
-            enabled: true,
-            size: 24,
-            margin: 20,
-            color: '#F44336',
-            dangerColor: '#8B0000',
-            warningColor: '#FF3D00',
-            safeColor: '#FFC107',
-            pulseSpeed: 0.005,
-            arrowLength: 15,
-            arrowWidth: 10,
-            maxDistanceForIndicator: 5000,
-            glowIntensity: 0.2,
-            innerGlowColor: '#FFFFFF',
-            pulseScale: 0.1,
-            dangerThreshold: 1000,
-            warningThreshold: 2500
-        };
+        this.enemyIndicators = TankGameConfig.indicators;
 
         // Player tank configuration
         this.playerTank = {
             x: this.world.width / 2,
             y: this.world.height / 2,
-            width: 80,
-            height: 60,
-            speed: 5,
+            width: TankGameConfig.player.width,
+            height: TankGameConfig.player.height,
+            speed: TankGameConfig.player.speed,
             rotation: 0,
             turretRotation: 0,
             lastShot: 0,
-            shootCooldown: 500,
-            color: '#4CAF50',
+            shootCooldown: TankGameConfig.player.shootCooldown,
+            color: TankGameConfig.player.color,
             hullOffsetX: 0,
             hullOffsetY: 0,
             // Turret configuration
-            turretWidth: 50,
-            turretHeight: 40,
+            turretWidth: TankGameConfig.player.turretWidth,
+            turretHeight: TankGameConfig.player.turretHeight,
             turretOffsetX: 0,
             turretOffsetY: 0,
             // Gun barrel configuration
-            barrelLength: 30,
-            barrelWidth: 6,
+            barrelLength: TankGameConfig.player.barrelLength,
+            barrelWidth: TankGameConfig.player.barrelWidth,
             barrelOffsetX: 0,
             barrelOffsetY: -15,
 
@@ -159,72 +107,45 @@ class TankGame {
             velocityX: 0,
             velocityY: 0,
             targetRotation: 0,
-            rotationSpeed: 0.05,
-            acceleration: 5.0,
-            deceleration: 3.0,
-            maxSpeed: 5,
+            rotationSpeed: TankGameConfig.player.rotationSpeed,
+            acceleration: TankGameConfig.player.acceleration,
+            deceleration: TankGameConfig.player.deceleration,
+            maxSpeed: TankGameConfig.player.maxSpeed,
             currentSpeed: 0
-        };
-
-        // Enemy tank configuration
-        this.enemyConfig = {
-            width: 70,
-            height: 50,
-            speed: 2,
-            shootCooldown: 500,
-            color: '#F44336',
-            hullOffsetX: 0,
-            hullOffsetY: 0,
-            // Turret configuration
-            turretWidth: 45,
-            turretHeight: 35,
-            turretOffsetX: 0,
-            turretOffsetY: 0,
-            // Gun barrel configuration
-            barrelLength: 25,
-            barrelWidth: 5,
-            barrelOffsetX: 0,
-            barrelOffsetY: -12
         };
 
         // Game settings
         this.settings = {
-            enemySpawnRate: 2000,
-            maxEnemies: 100,
-            bulletSpeed: 10,
-            enemyBulletSpeed: 7,
-            particleLifetime: 1000,
-            debugMode: true,
-            rapidFire: false,
-            enemySpawnDistance: 400,
-            enemyDespawnDistance: 800,
-            enemyCollisionRepulsion: 0.5,
-            enemySeparationDistance: 80,
-            enemyObstacleDetectionRange: 200,
-            enemyPathfindingAttempts: 5,
-            enemySmoothMovement: true,
-            enemyAvoidanceForce: 1.5,
-            enemyPursuitForce: 1.0,
-            enemyWanderForce: 0.3,
-            enemyRotationSpeed: 0.05,
-            enemyTurretTrackingSpeed: 0.1,
-            enemyMemorySize: 10,
-            enemyStuckThreshold: 60,
-            enemyStuckEscapeForce: 2.0,
-            enemyShootingRange: 600,
-            enemyShootingCooldown: 1000,
-            enemyShootingAccuracy: 0.95,
-            enemyShootingRandomness: 0.1
+            enemySpawnRate: TankGameConfig.spawning.enemySpawnRate,
+            maxEnemies: TankGameConfig.spawning.maxEnemies,
+            bulletSpeed: TankGameConfig.physics.bulletSpeed,
+            enemyBulletSpeed: TankGameConfig.physics.enemyBulletSpeed,
+            particleLifetime: TankGameConfig.physics.particleLifetime,
+            debugMode: TankGameConfig.game.debugMode,
+            rapidFire: TankGameConfig.game.rapidFire,
+            enemySpawnDistance: TankGameConfig.ai.enemySpawnDistance,
+            enemyDespawnDistance: TankGameConfig.ai.enemyDespawnDistance,
+            enemyCollisionRepulsion: TankGameConfig.physics.enemyCollisionRepulsion,
+            enemySeparationDistance: TankGameConfig.physics.enemySeparationDistance,
+            enemyObstacleDetectionRange: TankGameConfig.ai.enemyObstacleDetectionRange,
+            enemyPathfindingAttempts: TankGameConfig.ai.enemyPathfindingAttempts,
+            enemySmoothMovement: TankGameConfig.ai.enemySmoothMovement,
+            enemyAvoidanceForce: TankGameConfig.physics.enemyAvoidanceForce,
+            enemyPursuitForce: TankGameConfig.physics.enemyPursuitForce,
+            enemyWanderForce: TankGameConfig.physics.enemyWanderForce,
+            enemyRotationSpeed: TankGameConfig.enemy.rotationSpeed,
+            enemyTurretTrackingSpeed: TankGameConfig.enemy.turretTrackingSpeed,
+            enemyMemorySize: TankGameConfig.ai.enemyMemorySize,
+            enemyStuckThreshold: TankGameConfig.ai.enemyStuckThreshold,
+            enemyStuckEscapeForce: TankGameConfig.physics.enemyStuckEscapeForce,
+            enemyShootingRange: TankGameConfig.ai.enemyShootingRange,
+            enemyShootingCooldown: TankGameConfig.ai.enemyShootingCooldown,
+            enemyShootingAccuracy: TankGameConfig.ai.enemyShootingAccuracy,
+            enemyShootingRandomness: TankGameConfig.ai.enemyShootingRandomness
         };
 
         // Score configuration
-        this.scoreSystem = {
-            enemyKill: 25,
-            healthPack: 10,
-            baseWaveComplete: 100,
-            waveBonusIncrement: 50,
-            waveBonusInterval: 10
-        };
+        this.scoreSystem = TankGameConfig.score;
 
         // Button elements cache
         this.buttonElements = {
@@ -249,14 +170,7 @@ class TankGame {
 
         // Notification system
         this.notifications = [];
-        this.notificationSettings = {
-            maxNotifications: 5,
-            notificationDuration: 2000,
-            verticalSpacing: 60,
-            minTopPosition: 50,
-            maxTopPosition: 250,
-            initialTopPosition: 80
-        };
+        this.notificationSettings = TankGameConfig.notifications;
 
         this.init();
     }
@@ -546,11 +460,23 @@ class TankGame {
         this.playerTank.turretOffsetY = -this.playerTank.turretHeight / 2;
 
         // Calculate enemy tank offsets
-        this.enemyConfig.hullOffsetX = -this.enemyConfig.width / 2;
-        this.enemyConfig.hullOffsetY = -this.enemyConfig.height / 2;
-
-        this.enemyConfig.turretOffsetX = -this.enemyConfig.turretWidth / 2;
-        this.enemyConfig.turretOffsetY = -this.enemyConfig.turretHeight / 2;
+        this.enemyConfig = {
+            width: TankGameConfig.enemy.width,
+            height: TankGameConfig.enemy.height,
+            speed: TankGameConfig.enemy.speed,
+            shootCooldown: TankGameConfig.enemy.shootCooldown,
+            color: TankGameConfig.enemy.color,
+            hullOffsetX: -TankGameConfig.enemy.width / 2,
+            hullOffsetY: -TankGameConfig.enemy.height / 2,
+            turretWidth: TankGameConfig.enemy.turretWidth,
+            turretHeight: TankGameConfig.enemy.turretHeight,
+            turretOffsetX: -TankGameConfig.enemy.turretWidth / 2,
+            turretOffsetY: -TankGameConfig.enemy.turretHeight / 2,
+            barrelLength: TankGameConfig.enemy.barrelLength,
+            barrelWidth: TankGameConfig.enemy.barrelWidth,
+            barrelOffsetX: 0,
+            barrelOffsetY: -12
+        };
     }
 
     setupCamera() {
@@ -1112,7 +1038,7 @@ class TankGame {
         this.enemySpawnTimer = 0;
         this.wave = 1;
         this.score = 0;
-        this.playerHealth = 100;
+        this.playerHealth = TankGameConfig.player.health;
         this.gameOver = false;
         this.gamePaused = false;
         this.keys = {};
@@ -1352,7 +1278,7 @@ class TankGame {
                 speed: this.enemyConfig.speed + Math.random() * 0.5,
                 rotation: Math.random() * Math.PI * 2,
                 turretRotation: Math.random() * Math.PI * 2,
-                health: 100,
+                health: TankGameConfig.enemy.health,
                 lastShot: 0,
                 shootCooldown: this.enemyConfig.shootCooldown + Math.random() * 1000,
                 color: this.enemyConfig.color,
@@ -1396,7 +1322,7 @@ class TankGame {
             speed: this.enemyConfig.speed + Math.random() * 0.5,
             rotation: Math.random() * Math.PI * 2,
             turretRotation: Math.random() * Math.PI * 2,
-            health: 100,
+            health: TankGameConfig.enemy.health,
             lastShot: 0,
             shootCooldown: this.enemyConfig.shootCooldown + Math.random() * 1000,
             color: this.enemyConfig.color,
@@ -1460,6 +1386,7 @@ class TankGame {
             return;
         }
 
+        // Time is a flat circle
         const deltaTime = currentTime - this.lastTime;
         this.lastTime = currentTime;
 
