@@ -169,8 +169,7 @@ class TankGame {
         this.indicatorPhase = 0;
 
         // Notification system
-        this.notifications = [];
-        this.notificationSettings = TankGameConfig.notifications;
+        this.notificationSystem = new NotificationSystem(this);
 
         this.init();
     }
@@ -724,6 +723,7 @@ class TankGame {
         if (this.waveTimerElement) {
             this.waveTimerElement.style.display = 'none';
         }
+        this.notificationSystem.clearAll();
     }
 
     // Generate random rocks with irregular shapes
@@ -1077,7 +1077,7 @@ class TankGame {
         this.healthPackRespawnTimers = [];
 
         // Clear all notifications
-        this.clearAllNotifications();
+        this.notificationSystem.clearAll();
 
         // Hide wave timer
         if (this.waveTimerElement) {
@@ -1454,7 +1454,7 @@ class TankGame {
         this.updateWaveTimerDisplay();
 
         // Update notifications
-        this.updateNotifications(deltaTime);
+        this.notificationSystem.update(deltaTime);
 
         // Handle auto-fire
         this.handleAutoFire(deltaTime);
@@ -1473,65 +1473,6 @@ class TankGame {
         if (this.indicatorPhase > Math.PI * 2) {
             this.indicatorPhase -= Math.PI * 2;
         }
-    }
-
-    // Update notifications
-    updateNotifications(deltaTime) {
-        for (let i = this.notifications.length - 1; i >= 0; i--) {
-            const notification = this.notifications[i];
-            notification.life -= deltaTime;
-
-            if (notification.life <= 0) {
-                // Remove notification element
-                if (notification.element && notification.element.parentNode) {
-                    notification.element.parentNode.removeChild(notification.element);
-                }
-                // Remove from array
-                this.notifications.splice(i, 1);
-                // Recalculate positions for remaining notifications
-                this.recalculateNotificationPositions();
-                continue;
-            }
-
-            // Update opacity based on life
-            notification.element.style.opacity = Math.min(notification.life / notification.maxLife, 1);
-        }
-    }
-
-    // Recalculate positions for all notifications
-    recalculateNotificationPositions() {
-        let currentTop = this.notificationSettings.initialTopPosition;
-
-        for (let i = 0; i < this.notifications.length; i++) {
-            const notification = this.notifications[i];
-
-            // Position the notification
-            notification.element.style.top = `${currentTop}px`;
-            notification.topPosition = currentTop;
-
-            // Move to next position
-            currentTop += this.notificationSettings.verticalSpacing;
-
-            // Don't let notifications go too low
-            if (currentTop > this.notificationSettings.maxTopPosition) {
-                // If we run out of space, start removing oldest notifications
-                for (let j = 0; j < i; j++) {
-                    const oldNotification = this.notifications[j];
-                    oldNotification.life = 0; // Mark for removal
-                }
-                break;
-            }
-        }
-    }
-
-    // Clear all notifications
-    clearAllNotifications() {
-        for (const notification of this.notifications) {
-            if (notification.element && notification.element.parentNode) {
-                notification.element.parentNode.removeChild(notification.element);
-            }
-        }
-        this.notifications = [];
     }
 
     // Format time in MM:SS format
@@ -2263,18 +2204,7 @@ class TankGame {
 
     // Show floating text at a position
     showFloatingText(text, x, y, color) {
-        const floatingText = {
-            text: text,
-            x: x,
-            y: y,
-            color: color,
-            life: 1000,
-            maxLife: 1000,
-            velocityY: -0.5
-        };
-
-        // Add to particles array for rendering
-        this.particles.push(floatingText);
+        this.notificationSystem.showFloatingText(text, x, y, color);
     }
 
     createParticles(x, y, count, color) {
@@ -3252,7 +3182,7 @@ class TankGame {
         this.ctx.fillText(`Enemy AI: Turret Tracking ON`, 10, 460);
         this.ctx.fillText(`Obstacle Avoidance: ON`, 10, 480);
         this.ctx.fillText(`Enemy-Enemy Avoidance: ON`, 10, 500);
-        this.ctx.fillText(`Notifications: ${this.notifications.length}`, 10, 520);
+        this.ctx.fillText(`Notifications: ${this.notificationSystem.getNotificationCount()}`, 10, 520);
         this.ctx.fillText(`Edge Buffer: ${this.rockSettings.edgeBuffer}px`, 10, 540);
         this.ctx.fillText(`Min Passage Width: ${this.rockSettings.minPassageWidth}px`, 10, 560);
         this.ctx.fillText(`Border Thickness: ${this.borderSettings.thickness}px`, 10, 580);
@@ -3290,74 +3220,18 @@ class TankGame {
         if (this.waveTimerElement) {
             this.waveTimerElement.style.display = 'none';
         }
+
+        // Show game over notification
+        this.notificationSystem.showGameOverMessage(
+            this.score,
+            this.waveSystem.currentWave,
+            this.totalKills,
+            this.formatTime(this.survivalTime)
+        );
     }
 
     showMessage(text) {
-        // Remove old notifications if we have too many
-        if (this.notifications.length >= this.notificationSettings.maxNotifications) {
-            const oldestNotification = this.notifications[0];
-            if (oldestNotification.element && oldestNotification.element.parentNode) {
-                oldestNotification.element.parentNode.removeChild(oldestNotification.element);
-            }
-            this.notifications.shift();
-        }
-
-        // Create notification element
-        const message = document.createElement('div');
-        message.textContent = text;
-        message.style.cssText = `
-            position: fixed;
-            top: 20%;
-            left: 50%;
-            transform: translateX(-50%);
-            background-color: rgba(0, 0, 0, 0.8);
-            color: white;
-            padding: 10px 20px;
-            border-radius: 5px;
-            z-index: 1000;
-            font-weight: bold;
-            pointer-events: none;
-            animation: notificationPulse 2s ease-in-out infinite;
-        `;
-
-        document.body.appendChild(message);
-
-        // Create notification object
-        const notification = {
-            element: message,
-            life: this.notificationSettings.notificationDuration,
-            maxLife: this.notificationSettings.notificationDuration,
-            topPosition: this.notificationSettings.initialTopPosition
-        };
-
-        // Add to notifications array
-        this.notifications.push(notification);
-
-        // Calculate new position for this notification
-        this.recalculateNotificationPositions();
-
-        // Remove notification after duration
-        setTimeout(() => {
-            if (message.parentNode) {
-                message.style.opacity = '0';
-                message.style.transform = 'translateX(-50%) translateY(-10px)';
-
-                setTimeout(() => {
-                    if (message.parentNode) {
-                        message.parentNode.removeChild(message);
-                    }
-
-                    // Remove from array
-                    const index = this.notifications.indexOf(notification);
-                    if (index > -1) {
-                        this.notifications.splice(index, 1);
-                    }
-
-                    // Recalculate positions for remaining notifications
-                    this.recalculateNotificationPositions();
-                }, 300);
-            }
-        }, this.notificationSettings.notificationDuration);
+        this.notificationSystem.show(text);
     }
 }
 
