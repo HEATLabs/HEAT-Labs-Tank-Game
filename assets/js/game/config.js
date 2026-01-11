@@ -1,4 +1,4 @@
-// Tank Game Configuration
+// Game Configuration
 const TankGameConfig = {
     // Game settings
     game: {
