@@ -1688,8 +1688,20 @@ class TankGame {
             // Update turret rotation to track player
             if (distance > 0) {
                 const targetTurretAngle = Math.atan2(dy, dx);
-                const angleDiff = this.normalizeAngle(targetTurretAngle - enemy.turretRotation);
+                
+                // Calculate the shortest angle difference
+                let angleDiff = targetTurretAngle - enemy.turretRotation;
+                
+                // Normalize the angle difference
+                while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
+                while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
+                
+                // Smoothly rotate turret towards target
                 enemy.turretRotation += angleDiff * this.settings.enemyTurretTrackingSpeed;
+                
+                // Normalize turret rotation
+                while (enemy.turretRotation > Math.PI * 2) enemy.turretRotation -= Math.PI * 2;
+                while (enemy.turretRotation < 0) enemy.turretRotation += Math.PI * 2;
             }
 
             // Check if enemy can shoot at player
