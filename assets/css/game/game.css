@@ -44,18 +44,23 @@
 	text-decoration: none;
 	outline: none;
 	position: relative;
+	min-width: 200px;
 }
 
 .tank-game-btn i {
 	font-size: 1.1em;
 	position: absolute;
 	left: 1.5rem;
+	display: flex;
+	align-items: center;
+	justify-content: center;
 }
 
 .tank-game-btn span {
 	flex-grow: 1;
 	text-align: center;
 	margin-left: 1.5rem;
+	margin-right: 1.5rem;
 }
 
 .tank-game-btn:hover {
@@ -94,6 +99,40 @@
 
 .tank-game-btn.large span {
 	margin-left: 1.5rem;
+}
+
+.tank-game-btn.square {
+	width: 48px;
+	height: 48px;
+	min-width: 48px;
+	padding: 0;
+	border-radius: 8px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.tank-game-btn.square i {
+	position: static;
+	margin: 0;
+	font-size: 1.2em;
+}
+
+.tank-game-btn.square span {
+	display: none;
+}
+
+.fullscreen-controls-bar .tank-game-btn {
+	min-width: auto;
+}
+
+.fullscreen-controls-bar .tank-game-btn i {
+	position: static;
+	margin: 0;
+}
+
+.fullscreen-controls-bar .tank-game-btn span {
+	display: none;
 }
 
 /* Fullscreen control bar */
@@ -193,6 +232,20 @@
 	font-size: 1.125rem;
 	margin-bottom: 2rem;
 	max-width: 500px;
+}
+
+.game-overlay .button-container {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 1rem;
+	margin-top: 2rem;
+	width: 300px;
+}
+
+.game-overlay .tank-game-btn {
+	width: 100%;
+	justify-content: center;
 }
 
 .overlay-stats {

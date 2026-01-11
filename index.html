@@ -100,10 +100,16 @@
                       <div class="overlay-stat-label">Survival Time</div>
                     </div>
                   </div>
-                  <button id="restartFromOverlay" class="tank-game-btn" style="font-size: 1.25rem; padding: 1rem 2rem;">
-                    <i class="fas fa-redo"></i> Play Again </button>
-                  <button id="backToMainMenu" class="tank-game-btn secondary" style="margin-top: 1rem;">
-                    <i class="fas fa-home"></i> Back to Main Menu </button>
+                  <div class="button-container">
+                    <button id="restartFromOverlay" class="tank-game-btn" style="font-size: 1.25rem; padding: 1rem 2rem;">
+                      <i class="fas fa-redo"></i>
+                      <span>Play Again</span>
+                    </button>
+                    <button id="backToMainMenu" class="tank-game-btn secondary" style="margin-top: 1rem;">
+                      <i class="fas fa-home"></i>
+                      <span>Back to Main Menu</span>
+                    </button>
+                  </div>
                 </div>
                 <canvas id="tankGameCanvas"></canvas>
                 <div class="tank-debug-panel" id="debugPanel"></div>

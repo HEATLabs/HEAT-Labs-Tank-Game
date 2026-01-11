@@ -369,7 +369,7 @@ class TankGame {
 
         // Pause button
         const pauseBtn = document.createElement('button');
-        pauseBtn.className = 'tank-game-btn secondary';
+        pauseBtn.className = 'tank-game-btn secondary square';
         pauseBtn.id = 'fullscreenPause';
         pauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
 
