@@ -385,7 +385,11 @@ class TankGame {
         this.buttonElements.fullscreenPause = pauseBtn;
 
         // Add event listeners
-        pauseBtn.addEventListener('click', () => this.togglePause());
+        pauseBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            this.togglePause();
+            this.removeButtonActiveState(pauseBtn);
+        });
     }
 
     // Show fullscreen controls
@@ -593,45 +597,59 @@ class TankGame {
 
         // Main menu buttons
         if (this.buttonElements.continueGameButton) {
-            this.buttonElements.continueGameButton.addEventListener('click', () => {
+            this.buttonElements.continueGameButton.addEventListener('click', (e) => {
+                e.preventDefault();
                 this.showMessage("Feature Coming Soon");
+                this.removeButtonActiveState(this.buttonElements.continueGameButton);
             });
         }
 
         if (this.buttonElements.newGameButton) {
-            this.buttonElements.newGameButton.addEventListener('click', () => {
+            this.buttonElements.newGameButton.addEventListener('click', (e) => {
+                e.preventDefault();
                 this.startGame();
+                this.removeButtonActiveState(this.buttonElements.newGameButton);
             });
         }
 
         if (this.buttonElements.settingsButton) {
-            this.buttonElements.settingsButton.addEventListener('click', () => {
+            this.buttonElements.settingsButton.addEventListener('click', (e) => {
+                e.preventDefault();
                 this.showMessage("Feature Coming Soon");
+                this.removeButtonActiveState(this.buttonElements.settingsButton);
             });
         }
 
         if (this.buttonElements.exitButton) {
-            this.buttonElements.exitButton.addEventListener('click', () => {
+            this.buttonElements.exitButton.addEventListener('click', (e) => {
+                e.preventDefault();
                 this.showMessage("Feature Coming Soon");
+                this.removeButtonActiveState(this.buttonElements.exitButton);
             });
         }
 
         if (this.buttonElements.backToMainMenu) {
-            this.buttonElements.backToMainMenu.addEventListener('click', () => {
+            this.buttonElements.backToMainMenu.addEventListener('click', (e) => {
+                e.preventDefault();
                 this.showMainMenu();
+                this.removeButtonActiveState(this.buttonElements.backToMainMenu);
             });
         }
 
         // Overlay buttons
         if (this.buttonElements.startOverlay) {
-            this.buttonElements.startOverlay.addEventListener('click', () => {
+            this.buttonElements.startOverlay.addEventListener('click', (e) => {
+                e.preventDefault();
                 this.startGame();
+                this.removeButtonActiveState(this.buttonElements.startOverlay);
             });
         }
 
         if (this.buttonElements.restartOverlay) {
-            this.buttonElements.restartOverlay.addEventListener('click', () => {
+            this.buttonElements.restartOverlay.addEventListener('click', (e) => {
+                e.preventDefault();
                 this.startGame();
+                this.removeButtonActiveState(this.buttonElements.restartOverlay);
             });
         }
 
@@ -700,8 +718,10 @@ class TankGame {
 
         // Game control buttons
         if (this.buttonElements.pause) {
-            this.buttonElements.pause.addEventListener('click', () => {
+            this.buttonElements.pause.addEventListener('click', (e) => {
+                e.preventDefault();
                 this.togglePause();
+                this.removeButtonActiveState(this.buttonElements.pause);
             });
         }
 
@@ -715,6 +735,45 @@ class TankGame {
 
         // Initial button state
         this.updateButtonStates();
+
+        // Add global mouseup listener
+        document.addEventListener('mouseup', (e) => {
+            this.clearAllButtonActiveStates();
+        });
+
+        // Add touchend listener
+        document.addEventListener('touchend', (e) => {
+            this.clearAllButtonActiveStates();
+        });
+    }
+
+    // Remove active state from a specific button
+    removeButtonActiveState(button) {
+        if (!button) return;
+
+        // Blur the button to remove focus
+        button.blur();
+
+        // Remove any active styling classes
+        button.classList.remove('active');
+        button.classList.remove('pressed');
+
+        // Force a reflow to ensure styles are updated
+        void button.offsetWidth;
+    }
+
+    // Clear active states from all buttons
+    clearAllButtonActiveStates() {
+        // Get all tank game buttons
+        const buttons = document.querySelectorAll('.tank-game-btn');
+        buttons.forEach(button => {
+            this.removeButtonActiveState(button);
+        });
+
+        // Also handle the fullscreen pause button
+        if (this.buttonElements.fullscreenPause) {
+            this.removeButtonActiveState(this.buttonElements.fullscreenPause);
+        }
     }
 
     showMainMenu() {
