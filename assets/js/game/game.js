@@ -19,7 +19,7 @@ class TankGame {
         this.totalKills = 0;
         this.healthPacksCollected = 0;
         this.isFullscreen = true;
-        this.fullscreenControlsVisible = true;
+        this.fullscreenControlsVisible = false;
         this.fullscreenControlsTimeout = null;
         this.survivalTime = 0;
         this.startTime = 0;
@@ -276,6 +276,9 @@ class TankGame {
 
             // Apply fullscreen styles immediately
             this.applyFullscreenStyles();
+
+            // Hide fullscreen controls initially
+            this.hideFullscreenControls();
         });
     }
 
@@ -286,13 +289,6 @@ class TankGame {
 
         if (container && canvasContainer) {
             container.classList.add('tank-game-fullscreen');
-
-            // Show fullscreen controls
-            const controlsBar = document.getElementById('fullscreenControlsBar');
-            if (controlsBar) {
-                controlsBar.classList.add('visible');
-                this.showFullscreenControls();
-            }
         }
     }
 
@@ -387,6 +383,34 @@ class TankGame {
         pauseBtn.addEventListener('click', () => this.togglePause());
     }
 
+    // Show fullscreen controls
+    showFullscreenControls() {
+        const controlsBar = document.getElementById('fullscreenControlsBar');
+        if (!controlsBar) return;
+
+        controlsBar.classList.add('visible');
+        this.fullscreenControlsVisible = true;
+
+        // Clear previous timeout
+        if (this.fullscreenControlsTimeout) {
+            clearTimeout(this.fullscreenControlsTimeout);
+        }
+    }
+
+    // Hide fullscreen controls
+    hideFullscreenControls() {
+        const controlsBar = document.getElementById('fullscreenControlsBar');
+        if (!controlsBar) return;
+
+        controlsBar.classList.remove('visible');
+        this.fullscreenControlsVisible = false;
+
+        // Clear previous timeout
+        if (this.fullscreenControlsTimeout) {
+            clearTimeout(this.fullscreenControlsTimeout);
+        }
+    }
+
     createWaveTimerElement() {
         // Create wave timer element
         this.waveTimerElement = document.createElement('div');
@@ -478,18 +502,6 @@ class TankGame {
             } else {
                 fullscreenPauseBtn.innerHTML = '<i class="fas fa-pause"></i> Pause';
             }
-        }
-    }
-
-    showFullscreenControls() {
-        const controlsBar = document.getElementById('fullscreenControlsBar');
-        if (!controlsBar) return;
-
-        controlsBar.classList.add('visible');
-
-        // Clear previous timeout
-        if (this.fullscreenControlsTimeout) {
-            clearTimeout(this.fullscreenControlsTimeout);
         }
     }
 
@@ -1026,6 +1038,9 @@ class TankGame {
         if (this.waveTimerElement) {
             this.waveTimerElement.style.display = 'none';
         }
+
+        // Hide fullscreen controls when resetting game
+        this.hideFullscreenControls();
 
         // Don't exit fullscreen
         this.applyFullscreenStyles();
@@ -2087,6 +2102,10 @@ class TankGame {
                     this.playerHealth = 0;
                     this.gameOver = true;
                     this.gameRunning = false;
+
+                    // Hide fullscreen controls when game over
+                    this.hideFullscreenControls();
+
                     this.updateButtonStates();
                     this.showGameOver();
                 }
@@ -2126,6 +2145,10 @@ class TankGame {
                     this.playerHealth = 0;
                     this.gameOver = true;
                     this.gameRunning = false;
+
+                    // Hide fullscreen controls when game over
+                    this.hideFullscreenControls();
+
                     this.updateButtonStates();
                     this.showGameOver();
                 }
@@ -3020,18 +3043,6 @@ class TankGame {
         );
 
         this.ctx.restore();
-
-        // Draw commander hatch
-        this.ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
-        this.ctx.beginPath();
-        this.ctx.arc(
-            tank.turretOffsetX + tank.turretWidth / 2,
-            tank.turretOffsetY + 8,
-            6,
-            0,
-            Math.PI * 2
-        );
-        this.ctx.fill();
     }
 
     drawTankDetails(tank) {
