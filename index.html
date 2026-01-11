@@ -7,25 +7,6 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <!-- Page title displayed in the browser tab -->
     <title>Tank Defense - HEAT Labs</title>
-    <!-- Theme Checker -->
-    <script>
-      // Immediately set theme class before rendering begins
-      (function() {
-        try {
-          const savedTheme = localStorage.getItem('theme');
-          const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-          // Default to dark theme if saved or system preference
-          if (savedTheme === 'dark-theme' || (!savedTheme && prefersDark)) {
-            document.documentElement.classList.add('dark-theme');
-          } else {
-            document.documentElement.classList.add('light-theme');
-          }
-        } catch (e) {
-          console.error('Theme initialization error:', e);
-          document.documentElement.classList.add('light-theme');
-        }
-      })();
-    </script>
     <!-- Main stylesheets -->
     <link rel="stylesheet" href="assets/css/main.css">
     <link rel="stylesheet" href="assets/css/game/tank-defense.css">
@@ -43,41 +24,6 @@
           <!-- Game Section -->
           <section class="tank-game-section">
             <div class="tank-game-container">
-              <!-- Game Header -->
-              <div class="tank-game-header">
-                <div class="tank-game-stats">
-                  <div class="stat-item">
-                    <div class="stat-value" id="gameScore">0</div>
-                    <div class="stat-label">Score</div>
-                  </div>
-                  <div class="stat-item">
-                    <div class="stat-value" id="gameWave">1</div>
-                    <div class="stat-label">Wave</div>
-                  </div>
-                  <div class="stat-item">
-                    <div class="stat-value" id="gameHealth">100</div>
-                    <div class="stat-label">Health</div>
-                  </div>
-                  <div class="stat-item">
-                    <div class="stat-value" id="gameEnemies">0</div>
-                    <div class="stat-label">Enemies</div>
-                  </div>
-                  <div class="stat-item">
-                    <div class="stat-value" id="totalKills">0</div>
-                    <div class="stat-label">Total Kills</div>
-                  </div>
-                  <div class="stat-item">
-                    <div class="stat-value" id="healthPacksCollected">0</div>
-                    <div class="stat-label">Health Packs</div>
-                  </div>
-                </div>
-                <div class="tank-game-controls">
-                  <button id="fullscreenGame" class="tank-game-btn secondary">
-                    <i class="fas fa-expand"></i> Fullscreen </button>
-                  <button id="pauseGame" class="tank-game-btn secondary">
-                    <i class="fas fa-pause"></i> Pause </button>
-                </div>
-              </div>
               <!-- Game Canvas -->
               <div class="tank-game-canvas-container">
                 <!-- Start Overlay -->
@@ -116,7 +62,6 @@
       </section>
     </div>
     <script src="assets/js/game/tank-defense.js"></script>
-    <script src="assets/js/modules/theme-loader.js"></script>
     <script src="assets/js/modules/external-link.js"></script>
     <script src="assets/js/modules/context-menu.js"></script>
   </body>
