@@ -24,6 +24,10 @@ class TankGame {
         this.survivalTime = 0;
         this.startTime = 0;
 
+        // Screen shake effect
+        this.screenShakeAmount = 0;
+        this.screenShakeDuration = 0;
+
         // Auto-fire properties
         this.isMouseDown = false;
         this.autoFireTimer = 0;
@@ -1049,6 +1053,8 @@ class TankGame {
         this.survivalTime = 0;
         this.startTime = 0;
         this.indicatorPhase = 0;
+        this.screenShakeAmount = 0;
+        this.screenShakeDuration = 0;
 
         // Reset wave system
         this.waveSystem.currentWave = 1;
@@ -1405,6 +1411,9 @@ class TankGame {
         // Convert deltaTime to seconds
         const deltaTimeInSeconds = deltaTime / 1000;
 
+        // Update screen shake
+        this.updateScreenShake(deltaTime);
+
         // Update wave system
         this.updateWaveSystem(deltaTime);
 
@@ -1458,6 +1467,16 @@ class TankGame {
 
         // Handle auto-fire
         this.handleAutoFire(deltaTime);
+    }
+
+    // Update screen shake effect
+    updateScreenShake(deltaTime) {
+        if (this.screenShakeDuration > 0) {
+            this.screenShakeDuration -= deltaTime;
+            this.screenShakeAmount = this.screenShakeDuration / 1000 * 10;
+        } else {
+            this.screenShakeAmount = 0;
+        }
     }
 
     // Update survival timer
@@ -1688,20 +1707,8 @@ class TankGame {
             // Update turret rotation to track player
             if (distance > 0) {
                 const targetTurretAngle = Math.atan2(dy, dx);
-                
-                // Calculate the shortest angle difference
-                let angleDiff = targetTurretAngle - enemy.turretRotation;
-                
-                // Normalize the angle difference
-                while (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
-                while (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
-                
-                // Smoothly rotate turret towards target
+                const angleDiff = this.normalizeAngle(targetTurretAngle - enemy.turretRotation);
                 enemy.turretRotation += angleDiff * this.settings.enemyTurretTrackingSpeed;
-                
-                // Normalize turret rotation
-                while (enemy.turretRotation > Math.PI * 2) enemy.turretRotation -= Math.PI * 2;
-                while (enemy.turretRotation < 0) enemy.turretRotation += Math.PI * 2;
             }
 
             // Check if enemy can shoot at player
@@ -1923,8 +1930,8 @@ class TankGame {
 
         this.enemyBullets.push(bullet);
 
-        // Muzzle flash at barrel end
-        this.createParticles(bullet.x, bullet.y, 5, '#ff6b6b');
+        // Enhanced muzzle flash
+        this.createMuzzleFlash(enemy.x + barrelEndX, enemy.y + barrelEndY, finalRotation, '#ff6b6b');
     }
 
     shoot() {
@@ -1949,8 +1956,8 @@ class TankGame {
 
         this.bullets.push(bullet);
 
-        // Muzzle flash at barrel end
-        this.createParticles(bullet.x, bullet.y, 8, '#4CAF50');
+        // Enhanced muzzle flash
+        this.createMuzzleFlash(this.playerTank.x + barrelEndX, this.playerTank.y + barrelEndY, this.playerTank.turretRotation, '#4CAF50');
     }
 
     updateBullets(deltaTime) {
@@ -1960,6 +1967,11 @@ class TankGame {
             bullet.x += Math.cos(bullet.rotation) * bullet.speed * deltaTime * 60;
             bullet.y += Math.sin(bullet.rotation) * bullet.speed * deltaTime * 60;
 
+            // Add bullet trail effect
+            if (Math.random() < 0.3) {
+                this.createBulletTrail(bullet.x, bullet.y, bullet.rotation, '#FFD700');
+            }
+
             // Check collision with rocks
             let hitRock = false;
             for (const rock of this.rocks) {
@@ -1968,8 +1980,8 @@ class TankGame {
                 const distance = Math.sqrt(dx * dx + dy * dy);
 
                 if (distance < rock.radius) {
-                    // Hit rock
-                    this.createParticles(bullet.x, bullet.y, 10, rock.color);
+                    // Enhanced rock impact
+                    this.createRockImpact(bullet.x, bullet.y, rock.color);
                     this.bullets.splice(i, 1);
                     hitRock = true;
                     break;
@@ -1993,6 +2005,11 @@ class TankGame {
             bullet.x += Math.cos(bullet.rotation) * bullet.speed * deltaTime * 60;
             bullet.y += Math.sin(bullet.rotation) * bullet.speed * deltaTime * 60;
 
+            // Add bullet trail effect
+            if (Math.random() < 0.3) {
+                this.createBulletTrail(bullet.x, bullet.y, bullet.rotation, '#FF6B6B');
+            }
+
             // Check collision with rocks
             let hitRock = false;
             for (const rock of this.rocks) {
@@ -2001,8 +2018,8 @@ class TankGame {
                 const distance = Math.sqrt(dx * dx + dy * dy);
 
                 if (distance < rock.radius) {
-                    // Hit rock - create particles and remove bullet
-                    this.createParticles(bullet.x, bullet.y, 10, rock.color);
+                    // Enhanced rock impact
+                    this.createRockImpact(bullet.x, bullet.y, rock.color);
                     this.enemyBullets.splice(i, 1);
                     hitRock = true;
                     break;
@@ -2029,9 +2046,30 @@ class TankGame {
                 continue;
             }
 
-            particle.x += particle.vx * (deltaTime / 16.67);
-            particle.y += particle.vy * (deltaTime / 16.67);
-            particle.alpha = particle.life / particle.maxLife;
+            // Update particle based on type
+            if (particle.type === 'explosion') {
+                particle.size += particle.growth * (deltaTime / 16.67);
+                particle.alpha = particle.life / particle.maxLife;
+                particle.x += particle.vx * (deltaTime / 16.67);
+                particle.y += particle.vy * (deltaTime / 16.67);
+                particle.vx *= 0.95;
+                particle.vy *= 0.95;
+            } else if (particle.type === 'muzzleFlash') {
+                particle.size -= particle.growth * (deltaTime / 16.67);
+                particle.alpha = particle.life / particle.maxLife;
+            } else if (particle.type === 'trail') {
+                particle.alpha = particle.life / particle.maxLife;
+                particle.x += particle.vx * (deltaTime / 16.67);
+                particle.y += particle.vy * (deltaTime / 16.67);
+            } else if (particle.type === 'impact') {
+                particle.alpha = particle.life / particle.maxLife;
+                particle.size = particle.maxSize * (particle.life / particle.maxLife);
+            } else {
+                // Standard particle
+                particle.x += particle.vx * (deltaTime / 16.67);
+                particle.y += particle.vy * (deltaTime / 16.67);
+                particle.alpha = particle.life / particle.maxLife;
+            }
         }
     }
 
@@ -2052,7 +2090,7 @@ class TankGame {
                     enemy.health -= bullet.damage;
 
                     // Create hit particles
-                    this.createParticles(enemy.x, enemy.y, 15, enemy.color);
+                    this.createEnemyImpact(enemy.x, enemy.y, enemy.color);
 
                     // Remove bullet
                     this.bullets.splice(i, 1);
@@ -2068,8 +2106,11 @@ class TankGame {
                         this.totalKills++;
 
                         // Create particles and floating text for enemy kill
-                        this.createParticles(enemy.x, enemy.y, 30, '#FFD700');
+                        this.createExplosion(enemy.x, enemy.y, '#FFD700', 1.5);
                         this.showFloatingText(`+${this.scoreSystem.enemyKill} Kill`, enemy.x, enemy.y, '#FFD700');
+                    } else {
+                        // Just damage effect
+                        this.createDamageEffect(enemy.x, enemy.y, '#FF6B6B');
                     }
 
                     break;
@@ -2090,19 +2131,22 @@ class TankGame {
                 this.playerHealth -= bullet.damage;
 
                 // Create hit particles
-                this.createParticles(this.playerTank.x, this.playerTank.y, 10, '#ff6b6b');
+                this.createPlayerImpact(this.playerTank.x, this.playerTank.y);
 
                 // Remove bullet
                 this.enemyBullets.splice(i, 1);
 
                 // Screen shake effect
-                this.screenShake(10);
+                this.screenShake(3);
 
                 // Check game over
                 if (this.playerHealth <= 0) {
                     this.playerHealth = 0;
                     this.gameOver = true;
                     this.gameRunning = false;
+
+                    // Create death explosion
+                    this.createExplosion(this.playerTank.x, this.playerTank.y, '#F44336', 2.0);
 
                     // Hide fullscreen controls when game over
                     this.hideFullscreenControls();
@@ -2125,6 +2169,11 @@ class TankGame {
                 // RAM!
                 this.playerHealth -= 5;
 
+                // Create collision effect
+                const collisionX = (enemy.x + this.playerTank.x) / 2;
+                const collisionY = (enemy.y + this.playerTank.y) / 2;
+                this.createCollisionEffect(collisionX, collisionY);
+
                 // Push player away
                 const angle = Math.atan2(dy, dx);
                 this.playerTank.x -= Math.cos(angle) * 10;
@@ -2139,7 +2188,7 @@ class TankGame {
                 enemy.y += Math.sin(angle) * 10;
 
                 // Screen shake
-                this.screenShake(5);
+                this.screenShake(3);
 
                 // Check game over
                 if (this.playerHealth <= 0) {
@@ -2154,6 +2203,309 @@ class TankGame {
                     this.showGameOver();
                 }
             }
+        }
+    }
+
+    // Create explosion effect
+    createExplosion(x, y, color = '#FFD700', size = 1.0) {
+        const particleCount = Math.floor(30 * size);
+        const maxSpeed = 8 * size;
+
+        for (let i = 0; i < particleCount; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const speed = Math.random() * maxSpeed + 2;
+            const life = Math.random() * 800 + 400;
+
+            // Create explosion particles with varying colors
+            const colors = [
+                color,
+                '#FFA500',
+                '#FF6B6B',
+                '#FFFFFF'
+            ];
+            const particleColor = colors[Math.floor(Math.random() * colors.length)];
+
+            this.particles.push({
+                x: x,
+                y: y,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed,
+                life: life,
+                maxLife: life,
+                color: particleColor,
+                alpha: 1,
+                size: Math.random() * 4 * size + 2,
+                type: 'explosion',
+                growth: 0.2
+            });
+        }
+
+        // Add shockwave effect
+        for (let i = 0; i < 5; i++) {
+            this.particles.push({
+                x: x,
+                y: y,
+                vx: 0,
+                vy: 0,
+                life: 600,
+                maxLife: 600,
+                color: color,
+                alpha: 0.7,
+                size: 0,
+                type: 'explosion',
+                growth: 2.0
+            });
+        }
+
+        // Add screen shake
+        this.screenShake(5 * size);
+    }
+
+    // Create muzzle flash effect
+    createMuzzleFlash(x, y, angle, color) {
+        const flashCount = 8;
+        const length = 20;
+
+        for (let i = 0; i < flashCount; i++) {
+            const flashAngle = angle + (Math.random() - 0.5) * 0.5;
+            const flashLength = Math.random() * length + 10;
+            const flashSpeed = Math.random() * 5 + 3;
+
+            this.particles.push({
+                x: x,
+                y: y,
+                vx: Math.cos(flashAngle) * flashSpeed,
+                vy: Math.sin(flashAngle) * flashSpeed,
+                life: 150,
+                maxLife: 150,
+                color: color,
+                alpha: 1,
+                size: Math.random() * 8 + 4,
+                type: 'muzzleFlash',
+                growth: -0.2
+            });
+        }
+
+        // Add bright flash at barrel end
+        this.particles.push({
+            x: x,
+            y: y,
+            vx: 0,
+            vy: 0,
+            life: 80,
+            maxLife: 80,
+            color: '#FFFFFF',
+            alpha: 0.8,
+            size: 15,
+            type: 'muzzleFlash',
+            growth: -0.3
+        });
+    }
+
+    // Create bullet trail effect
+    createBulletTrail(x, y, angle, color) {
+        // Create trail particle behind bullet
+        const trailX = x - Math.cos(angle) * 10;
+        const trailY = y - Math.sin(angle) * 10;
+
+        this.particles.push({
+            x: trailX,
+            y: trailY,
+            vx: Math.cos(angle) * -2,
+            vy: Math.sin(angle) * -2,
+            life: 200,
+            maxLife: 200,
+            color: color,
+            alpha: 0.6,
+            size: Math.random() * 2 + 1,
+            type: 'trail'
+        });
+    }
+
+    // Create rock impact effect
+    createRockImpact(x, y, rockColor) {
+        const impactCount = 15;
+
+        for (let i = 0; i < impactCount; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const speed = Math.random() * 3 + 1;
+            const life = Math.random() * 400 + 200;
+
+            this.particles.push({
+                x: x,
+                y: y,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed,
+                life: life,
+                maxLife: life,
+                color: this.lightenColor(rockColor, 30),
+                alpha: 1,
+                size: Math.random() * 3 + 2,
+                type: 'impact',
+                maxSize: Math.random() * 4 + 3
+            });
+        }
+
+        // Add impact flash
+        this.particles.push({
+            x: x,
+            y: y,
+            vx: 0,
+            vy: 0,
+            life: 100,
+            maxLife: 100,
+            color: '#FFFFFF',
+            alpha: 0.7,
+            size: 12,
+            type: 'impact',
+            maxSize: 12
+        });
+
+        this.screenShake(3);
+    }
+
+    // Create enemy impact effect
+    createEnemyImpact(x, y, enemyColor) {
+        const impactCount = 12;
+
+        for (let i = 0; i < impactCount; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const speed = Math.random() * 4 + 2;
+            const life = Math.random() * 300 + 150;
+
+            this.particles.push({
+                x: x,
+                y: y,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed,
+                life: life,
+                maxLife: life,
+                color: enemyColor,
+                alpha: 1,
+                size: Math.random() * 4 + 2
+            });
+        }
+
+        // Add sparks
+        for (let i = 0; i < 6; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const speed = Math.random() * 6 + 3;
+            const life = Math.random() * 400 + 200;
+
+            this.particles.push({
+                x: x,
+                y: y,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed,
+                life: life,
+                maxLife: life,
+                color: '#FFD700',
+                alpha: 1,
+                size: Math.random() * 2 + 1
+            });
+        }
+
+        this.screenShake(3);
+    }
+
+    // Create player impact effect
+    createPlayerImpact(x, y) {
+        const impactCount = 15;
+
+        for (let i = 0; i < impactCount; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const speed = Math.random() * 5 + 2;
+            const life = Math.random() * 350 + 150;
+
+            this.particles.push({
+                x: x,
+                y: y,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed,
+                life: life,
+                maxLife: life,
+                color: '#FF6B6B',
+                alpha: 1,
+                size: Math.random() * 5 + 2
+            });
+        }
+
+        // Add shield impact effect
+        for (let i = 0; i < 3; i++) {
+            this.particles.push({
+                x: x,
+                y: y,
+                vx: 0,
+                vy: 0,
+                life: 300,
+                maxLife: 300,
+                color: '#4CAF50',
+                alpha: 0.5,
+                size: 0,
+                type: 'explosion',
+                growth: 1.0
+            });
+        }
+    }
+
+    // Create damage effect (for non-fatal hits)
+    createDamageEffect(x, y, color) {
+        for (let i = 0; i < 8; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const speed = Math.random() * 3 + 1;
+            const life = Math.random() * 200 + 100;
+
+            this.particles.push({
+                x: x,
+                y: y,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed,
+                life: life,
+                maxLife: life,
+                color: color,
+                alpha: 1,
+                size: Math.random() * 3 + 2
+            });
+        }
+    }
+
+    // Create collision effect
+    createCollisionEffect(x, y) {
+        const sparkCount = 20;
+
+        for (let i = 0; i < sparkCount; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const speed = Math.random() * 8 + 4;
+            const life = Math.random() * 500 + 300;
+
+            this.particles.push({
+                x: x,
+                y: y,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed,
+                life: life,
+                maxLife: life,
+                color: '#FFFFFF',
+                alpha: 1,
+                size: Math.random() * 2 + 1
+            });
+        }
+
+        // Add impact ring
+        for (let i = 0; i < 4; i++) {
+            this.particles.push({
+                x: x,
+                y: y,
+                vx: 0,
+                vy: 0,
+                life: 400,
+                maxLife: 400,
+                color: '#FFA500',
+                alpha: 0.6,
+                size: 0,
+                type: 'explosion',
+                growth: 1.5
+            });
         }
     }
 
@@ -2198,7 +2550,7 @@ class TankGame {
         this.healthPacksCollected++;
 
         // Create healing particles
-        this.createParticles(pack.x, pack.y, 20, this.healthPackSettings.color);
+        this.createHealingEffect(pack.x, pack.y);
 
         // Add floating text showing health gained AND points
         this.showFloatingText(`+${this.scoreSystem.healthPack} HP`, pack.x, pack.y, this.healthPackSettings.color);
@@ -2212,6 +2564,48 @@ class TankGame {
             healthPack: pack,
             timeRemaining: this.healthPackSettings.respawnTime
         });
+    }
+
+    // Create healing effect
+    createHealingEffect(x, y) {
+        const healingCount = 25;
+
+        for (let i = 0; i < healingCount; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const speed = Math.random() * 3 + 1;
+            const life = Math.random() * 600 + 400;
+
+            this.particles.push({
+                x: x,
+                y: y,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed,
+                life: life,
+                maxLife: life,
+                color: this.healthPackSettings.color,
+                alpha: 0.8,
+                size: Math.random() * 4 + 2,
+                type: 'explosion',
+                growth: 0.1
+            });
+        }
+
+        // Add glow effect
+        for (let i = 0; i < 3; i++) {
+            this.particles.push({
+                x: x,
+                y: y,
+                vx: 0,
+                vy: 0,
+                life: 500,
+                maxLife: 500,
+                color: '#10B981',
+                alpha: 0.6,
+                size: 0,
+                type: 'explosion',
+                growth: 1.2
+            });
+        }
     }
 
     // Show floating text at a position
@@ -2239,17 +2633,24 @@ class TankGame {
     }
 
     screenShake(intensity) {
-        // PLACEHOLDER
-        this.createParticles(this.playerTank.x, this.playerTank.y, 20, '#ffffff');
+        this.screenShakeDuration = intensity * 100;
+        this.screenShakeAmount = intensity;
     }
 
     render() {
+        // Apply screen shake
+        const shakeX = this.screenShakeAmount > 0 ? (Math.random() - 0.5) * this.screenShakeAmount * 2 : 0;
+        const shakeY = this.screenShakeAmount > 0 ? (Math.random() - 0.5) * this.screenShakeAmount * 2 : 0;
+
         // Clear canvas
         this.ctx.fillStyle = '#1a1a1a';
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
         // Save context for camera transformation
         this.ctx.save();
+
+        // Apply screen shake
+        this.ctx.translate(shakeX, shakeY);
 
         // Apply camera transformation
         this.ctx.translate(-this.camera.x, -this.camera.y);
@@ -2267,11 +2668,11 @@ class TankGame {
         this.drawHealthPacks();
 
         // Draw all game objects
+        this.drawParticles();
         this.drawEnemies();
         this.drawPlayer();
         this.drawBullets();
         this.drawEnemyBullets();
-        this.drawParticles();
 
         // Restore context
         this.ctx.restore();
@@ -3071,22 +3472,29 @@ class TankGame {
             this.ctx.translate(bullet.x, bullet.y);
             this.ctx.rotate(bullet.rotation);
 
-            // Bullet body
-            this.ctx.fillStyle = '#FFD700';
-            this.ctx.fillRect(-3, -2, 10, 4);
+            // Bullet glow
+            const gradient = this.ctx.createRadialGradient(0, 0, 0, 0, 0, 6);
+            gradient.addColorStop(0, '#FFD700');
+            gradient.addColorStop(0.7, '#FFA500');
+            gradient.addColorStop(1, 'transparent');
 
-            // Bullet tip
-            this.ctx.fillStyle = '#FFA500';
+            this.ctx.fillStyle = gradient;
             this.ctx.beginPath();
-            this.ctx.moveTo(7, -2);
-            this.ctx.lineTo(12, 0);
-            this.ctx.lineTo(7, 2);
-            this.ctx.closePath();
+            this.ctx.arc(0, 0, 6, 0, Math.PI * 2);
             this.ctx.fill();
 
-            // Glow effect
-            this.ctx.fillStyle = 'rgba(255, 215, 0, 0.2)';
-            this.ctx.fillRect(-4, -3, 14, 6);
+            // Bullet core
+            this.ctx.fillStyle = '#FFD700';
+            this.ctx.fillRect(-4, -2, 12, 4);
+
+            // Bullet tip
+            this.ctx.fillStyle = '#FF8C00';
+            this.ctx.beginPath();
+            this.ctx.moveTo(8, -3);
+            this.ctx.lineTo(14, 0);
+            this.ctx.lineTo(8, 3);
+            this.ctx.closePath();
+            this.ctx.fill();
 
             this.ctx.restore();
         });
@@ -3098,22 +3506,29 @@ class TankGame {
             this.ctx.translate(bullet.x, bullet.y);
             this.ctx.rotate(bullet.rotation);
 
-            // Bullet body
-            this.ctx.fillStyle = '#FF6B6B';
-            this.ctx.fillRect(-2, -2, 8, 4);
+            // Bullet glow
+            const gradient = this.ctx.createRadialGradient(0, 0, 0, 0, 0, 5);
+            gradient.addColorStop(0, '#FF6B6B');
+            gradient.addColorStop(0.7, '#FF4444');
+            gradient.addColorStop(1, 'transparent');
 
-            // Bullet tip
-            this.ctx.fillStyle = '#FF4444';
+            this.ctx.fillStyle = gradient;
             this.ctx.beginPath();
-            this.ctx.moveTo(6, -2);
-            this.ctx.lineTo(10, 0);
-            this.ctx.lineTo(6, 2);
-            this.ctx.closePath();
+            this.ctx.arc(0, 0, 5, 0, Math.PI * 2);
             this.ctx.fill();
 
-            // Glow effect
-            this.ctx.fillStyle = 'rgba(255, 107, 107, 0.2)';
-            this.ctx.fillRect(-3, -3, 12, 6);
+            // Bullet core
+            this.ctx.fillStyle = '#FF6B6B';
+            this.ctx.fillRect(-3, -2, 10, 4);
+
+            // Bullet tip
+            this.ctx.fillStyle = '#FF3333';
+            this.ctx.beginPath();
+            this.ctx.moveTo(7, -2.5);
+            this.ctx.lineTo(12, 0);
+            this.ctx.lineTo(7, 2.5);
+            this.ctx.closePath();
+            this.ctx.fill();
 
             this.ctx.restore();
         });
@@ -3135,10 +3550,44 @@ class TankGame {
                 // Regular particle
                 this.ctx.save();
                 this.ctx.globalAlpha = particle.alpha;
-                this.ctx.fillStyle = particle.color;
-                this.ctx.beginPath();
-                this.ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
-                this.ctx.fill();
+
+                if (particle.type === 'explosion' || particle.type === 'impact') {
+                    // Draw explosion/impact particles with gradient
+                    const gradient = this.ctx.createRadialGradient(
+                        particle.x, particle.y, 0,
+                        particle.x, particle.y, particle.size
+                    );
+                    gradient.addColorStop(0, particle.color);
+                    gradient.addColorStop(0.5, particle.color);
+                    gradient.addColorStop(1, 'transparent');
+
+                    this.ctx.fillStyle = gradient;
+                    this.ctx.beginPath();
+                    this.ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+                    this.ctx.fill();
+                } else if (particle.type === 'muzzleFlash') {
+                    // Draw muzzle flash with star shape
+                    this.ctx.fillStyle = particle.color;
+                    this.ctx.beginPath();
+                    for (let i = 0; i < 8; i++) {
+                        const angle = (i * Math.PI) / 4;
+                        const radius = i % 2 === 0 ? particle.size : particle.size * 0.5;
+                        const x = particle.x + Math.cos(angle) * radius;
+                        const y = particle.y + Math.sin(angle) * radius;
+
+                        if (i === 0) this.ctx.moveTo(x, y);
+                        else this.ctx.lineTo(x, y);
+                    }
+                    this.ctx.closePath();
+                    this.ctx.fill();
+                } else {
+                    // Standard circular particle
+                    this.ctx.fillStyle = particle.color;
+                    this.ctx.beginPath();
+                    this.ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
+                    this.ctx.fill();
+                }
+
                 this.ctx.restore();
             }
         });
@@ -3202,6 +3651,8 @@ class TankGame {
         this.ctx.fillText(`Enemy Shooting Range: ${this.settings.enemyShootingRange}px`, 10, 620);
         this.ctx.fillText(`Enemy Shooting Accuracy: ${this.settings.enemyShootingAccuracy}`, 10, 640);
         this.ctx.fillText(`Enemy Bullets: ${this.enemyBullets.length}`, 10, 660);
+        this.ctx.fillText(`Particles: ${this.particles.length}`, 10, 680);
+        this.ctx.fillText(`Screen Shake: ${this.screenShakeAmount.toFixed(2)}`, 10, 700);
 
         this.ctx.restore();
     }
