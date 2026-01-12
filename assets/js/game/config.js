@@ -46,8 +46,8 @@ const TankGameConfig = {
 
     // Physics settings
     physics: {
-        bulletSpeed: 10,
-        enemyBulletSpeed: 7,
+        bulletSpeed: 15,
+        enemyBulletSpeed: 10,
         particleLifetime: 1000,
         enemyCollisionRepulsion: 0.5,
         enemySeparationDistance: 80,
