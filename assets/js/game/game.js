@@ -32,6 +32,7 @@ class TankGame {
         this.isMouseDown = false;
         this.autoFireTimer = 0;
         this.autoFireInterval = TankGameConfig.autoFire.interval;
+        this.lastFireTime = 0;
 
         // Wave system
         this.waveSystem = {
@@ -620,6 +621,7 @@ class TankGame {
                 e.preventDefault();
                 this.isMouseDown = true;
                 this.autoFireTimer = 0;
+                this.lastFireTime = performance.now();
                 // Fire immediately on click
                 this.shoot();
             }
@@ -1050,6 +1052,7 @@ class TankGame {
         this.healthPacksCollected = 0;
         this.isMouseDown = false;
         this.autoFireTimer = 0;
+        this.lastFireTime = 0;
         this.survivalTime = 0;
         this.startTime = 0;
         this.indicatorPhase = 0;
@@ -1506,25 +1509,37 @@ class TankGame {
     handleAutoFire(deltaTime) {
         if (!this.gameRunning || this.gamePaused || this.gameOver) return;
 
+        const currentTime = performance.now();
+
         // Check if mouse button is held down
         if (this.isMouseDown) {
-            this.autoFireTimer += deltaTime;
+            // Check if enough time has passed since the last shot
+            const timeSinceLastShot = currentTime - this.lastFireTime;
 
             // Check if it's time to fire again
-            if (this.autoFireTimer >= this.autoFireInterval) {
+            if (timeSinceLastShot >= this.playerTank.shootCooldown) {
                 this.shoot();
+                this.lastFireTime = currentTime;
                 this.autoFireTimer = 0; // Reset timer
+            } else {
+                // Accumulate time for the next check
+                this.autoFireTimer += deltaTime;
             }
         }
 
         // Check if space key is held down
         if (this.keys[' ']) {
-            this.autoFireTimer += deltaTime;
+            // Check if enough time has passed since the last shot
+            const timeSinceLastShot = currentTime - this.lastFireTime;
 
             // Check if it's time to fire again
-            if (this.autoFireTimer >= this.autoFireInterval) {
+            if (timeSinceLastShot >= this.playerTank.shootCooldown) {
                 this.shoot();
+                this.lastFireTime = currentTime;
                 this.autoFireTimer = 0; // Reset timer
+            } else {
+                // Accumulate time for the next check
+                this.autoFireTimer += deltaTime;
             }
         }
     }
