@@ -7,7 +7,7 @@ function onDomReady(fn) {
     }
 }
 
-(function () {
+(function() {
     // Resolve paths relative to this file so the folder can live anywhere
     const current = document.currentScript;
     const base = current ? current.src.replace(/main\.js(\?.*)?$/, '') : 'assets/js/';
@@ -55,11 +55,11 @@ function onDomReady(fn) {
     ];
 
     function loadScript(path) {
-        return new Promise(function (resolve, reject) {
+        return new Promise(function(resolve, reject) {
             const script = document.createElement('script');
             script.src = base + path;
             script.onload = resolve;
-            script.onerror = function () {
+            script.onerror = function() {
                 reject(new Error('Failed to load ' + path));
             };
             document.body.appendChild(script);
@@ -67,9 +67,11 @@ function onDomReady(fn) {
     }
 
     // Load sequentially so execution order is guaranteed
-    modules.reduce(function (chain, path) {
-        return chain.then(function () { return loadScript(path); });
-    }, Promise.resolve()).catch(function (err) {
+    modules.reduce(function(chain, path) {
+        return chain.then(function() {
+            return loadScript(path);
+        });
+    }, Promise.resolve()).catch(function(err) {
         console.error('[Tank Defense] ' + err.message);
     });
 })();
