@@ -1,5 +1,5 @@
 // External Link Warning
-document.addEventListener('DOMContentLoaded', function() {
+onDomReady(function() {
     // Configuration
     const CONFIG = {
         enabled: true,

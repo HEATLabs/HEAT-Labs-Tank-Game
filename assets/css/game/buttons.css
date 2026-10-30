@@ -1,0 +1,98 @@
+/* Shared game buttons */
+/* Buttons */
+.tank-game-btn {
+	background-color: var(--accent-color);
+	color: white;
+	border: none;
+	border-radius: 8px;
+	padding: 0.75rem 1.5rem;
+	font-size: 1rem;
+	font-weight: 600;
+	font-family: var(--font-body);
+	cursor: pointer;
+	transition: all 0.2s ease;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.75rem;
+	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+	text-decoration: none;
+	outline: none;
+	position: relative;
+	min-width: 200px;
+}
+
+.tank-game-btn i {
+	font-size: 1.1em;
+	position: absolute;
+	left: 1.5rem;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.tank-game-btn span {
+	flex-grow: 1;
+	text-align: center;
+	margin-left: 1.5rem;
+	margin-right: 1.5rem;
+}
+
+.tank-game-btn:hover {
+	background-color: var(--accent-color-hover);
+	box-shadow: 0 6px 8px rgba(0, 0, 0, 0.3);
+}
+
+.tank-game-btn:active {
+	box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.tank-game-btn:focus {
+	outline: 2px solid var(--accent-color);
+	outline-offset: 2px;
+}
+
+.tank-game-btn.secondary {
+	background-color: transparent;
+	border: 2px solid var(--accent-color);
+	color: var(--accent-color);
+}
+
+.tank-game-btn.secondary:hover {
+	background-color: var(--accent-color);
+	color: white;
+}
+
+.tank-game-btn.large {
+	font-size: 1.25rem;
+	padding: 1rem 2rem;
+}
+
+.tank-game-btn.large i {
+	left: 2rem;
+}
+
+.tank-game-btn.large span {
+	margin-left: 1.5rem;
+}
+
+.tank-game-btn.square {
+	width: 48px;
+	height: 48px;
+	min-width: 48px;
+	padding: 0;
+	border-radius: 8px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.tank-game-btn.square i {
+	position: static;
+	margin: 0;
+	font-size: 1.2em;
+}
+
+.tank-game-btn.square span {
+	display: none;
+}

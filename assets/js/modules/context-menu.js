@@ -5,7 +5,7 @@ document.addEventListener('contextmenu', function(e) {
 });
 
 // Block context menu on images
-document.addEventListener('DOMContentLoaded', function() {
+onDomReady(function() {
     const images = document.querySelectorAll('img');
     images.forEach(function(img) {
         img.addEventListener('contextmenu', function(e) {
